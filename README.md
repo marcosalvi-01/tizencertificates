@@ -24,6 +24,8 @@ Optional parameters:
 
 - `--tv`: Generate certificates for TV devices (default is for other Tizen devices)
 
+When you run the server, your browser will open to Samsung's login page. You'll need to sign in with your Samsung account to authorize the certificate generation. This provides the necessary OAuth access token for creating the certificates.
+
 ## Example Output
 
 ![Certificate Generation Complete](result.png)

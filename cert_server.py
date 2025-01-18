@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 import uvicorn
 from typing import Optional
 import subprocess
@@ -16,6 +18,14 @@ import webbrowser
 from threading import Timer
 import json
 import requests
+import signal
+
+
+# Get the directory where the script is located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Create necessary directories
+os.makedirs("certificates", exist_ok=True)
 
 
 class CertType(str, Enum):
@@ -101,6 +111,7 @@ def generate_certificates(
     if not os.path.exists(ca_cert):
         raise Exception(f"CA certificate not found: {ca_cert}")
 
+    # Change to certificates directory for all operations
     os.chdir(cert_dir)
 
     # Generate author certificate
@@ -145,9 +156,6 @@ def generate_certificates(
         "-in author-and-ca.crt -name usercertificate"
         " -legacy -passout pass:"
     )
-    # if cert_type == CertType.TV:
-    #     pkcs12_cmd += " -legacy"
-    # pkcs12_cmd += " -passout pass:"
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:
@@ -203,21 +211,29 @@ def generate_certificates(
         "-in distributor-and-ca.crt -name usercertificate"
         " -legacy -passout pass:"
     )
-    # if cert_type == CertType.TV:
-    #     pkcs12_cmd += " -legacy"
-    # pkcs12_cmd += " -passout pass:"
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"Command failed: {pkcs12_cmd}\nError: {result.stderr}")
 
+    # Change back to original directory
+    os.chdir(base_dir)
+
 
 app = FastAPI()
 token_store = TokenStore()
 
+# Setup templates with absolute path
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
 
 # Create a function to setup routes that we'll call after config is initialized
 def setup_routes():
+    # Serve certificate files
+    app.mount(
+        "/certificates", StaticFiles(directory="certificates"), name="certificates"
+    )
+
     @app.get("/auth/start")
     async def start_auth():
         """Return the login URL instead of redirecting"""
@@ -264,10 +280,22 @@ def setup_routes():
                     user_id,
                 )
 
-                return JSONResponse(
-                    content={
-                        "message": "Authentication successful and certificates generated. You can now close this window."
-                    }
+                # Get list of generated certificate files
+                cert_files = [
+                    f for f in os.listdir("certificates") if f.endswith((".p12"))
+                ]
+
+                # Get absolute path to certificates directory
+                cert_dir = os.path.abspath("certificates")
+
+                # Return HTML completion page
+                return templates.TemplateResponse(
+                    "completion.html",
+                    {
+                        "request": request,
+                        "certificate_files": sorted(cert_files),
+                        "certificates_path": cert_dir,
+                    },
                 )
 
             except json.JSONDecodeError:
@@ -277,6 +305,12 @@ def setup_routes():
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post("/shutdown")
+    async def shutdown():
+        """Gracefully shutdown the server"""
+        os.kill(os.getpid(), signal.SIGTERM)
+        return {"message": "Server shutting down"}
 
 
 def open_browser():

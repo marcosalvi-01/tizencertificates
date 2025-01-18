@@ -24,6 +24,10 @@ Optional parameters:
 
 - `--tv`: Generate certificates for TV devices (default is for other Tizen devices)
 
+## Example Output
+
+![Certificate Generation Complete](result.png)
+
 ## How It Works
 
 ### Certificate Extension Discovery

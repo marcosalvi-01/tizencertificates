@@ -55,6 +55,8 @@ All certificates are generated with empty passwords for easier integration with 
 
 Special thanks to Andreas Mausch ([@andreas-mausch](https://github.com/andreas-mausch)) for the research and documentation of the Samsung certificate generation process. The certificate chain and generation process is based on his work in the [moonwatch project](https://gitlab.com/andreas-mausch/moonwatch/-/blob/master/certificates/CreateSamsungCertificate.md).
 
+Additional thanks to [@bloodlee](https://github.com/bloodlee) for the [PyJavap project](https://github.com/bloodlee/PyJavap), which provided valuable insights into Java class file parsing without external dependencies. While PyJavap is more comprehensive, its approach to class file structure analysis helped inform the focused implementation used in this project.
+
 ## License
 
 MIT License

@@ -143,10 +143,11 @@ def generate_certificates(
     pkcs12_cmd = (
         "openssl pkcs12 -export -out author.p12 -inkey author.key.pem "
         "-in author-and-ca.crt -name usercertificate"
+        " -legacy -passout pass:"
     )
-    if cert_type == CertType.TV:
-        pkcs12_cmd += " -legacy"
-    pkcs12_cmd += " -passout pass:"
+    # if cert_type == CertType.TV:
+    #     pkcs12_cmd += " -legacy"
+    # pkcs12_cmd += " -passout pass:"
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:
@@ -200,10 +201,11 @@ def generate_certificates(
     pkcs12_cmd = (
         "openssl pkcs12 -export -out distributor.p12 -inkey distributor.key.pem "
         "-in distributor-and-ca.crt -name usercertificate"
+        " -legacy -passout pass:"
     )
-    if cert_type == CertType.TV:
-        pkcs12_cmd += " -legacy"
-    pkcs12_cmd += " -passout pass:"
+    # if cert_type == CertType.TV:
+    #     pkcs12_cmd += " -legacy"
+    # pkcs12_cmd += " -passout pass:"
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
     if result.returncode != 0:

@@ -2,6 +2,28 @@
 
 A FastAPI web application that automates the process of generating Samsung Tizen developer certificates for both TV and other Tizen devices.
 
+## Installation & Usage
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the server (for Tizen devices like watches)
+python cert_server.py --device-id="<DEVICE_ID>" --email="you@example.com"
+
+# Run the server (for TV devices)
+python cert_server.py --tv --device-id="<DEVICE_ID>" --email="you@example.com"
+```
+
+Required parameters:
+
+- `--device-id`: Your device's unique identifier
+- `--email`: Your Samsung account email
+
+Optional parameters:
+
+- `--tv`: Generate certificates for TV devices (default is for other Tizen devices)
+
 ## How It Works
 
 ### Certificate Extension Discovery

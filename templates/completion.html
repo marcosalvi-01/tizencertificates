@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Certificate Generation Complete</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+        }
+        .success { color: #2ecc71; }
+        .file-list {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .file-link {
+            display: block;
+            padding: 0.5rem;
+            color: #2980b9;
+            text-decoration: none;
+        }
+        .file-link:hover { text-decoration: underline; }
+        .shutdown-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .shutdown-btn:hover { background: #c0392b; }
+        .close-btn {
+            background: #7f8c8d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+        .close-btn:hover { background: #95a5a6; }
+        .steps {
+            margin: 1.5rem 0;
+            padding-left: 1.2rem;
+        }
+        .steps li {
+            margin-bottom: 0.5rem;
+        }
+        .command-box {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 1rem 0;
+            line-height: 1.4;
+        }
+        .next-steps {
+            border-left: 4px solid #3498db;
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+        }
+        .shutdown-message {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 1rem;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1><span class="success">✓</span> Certificate Generation Complete</h1>
+    <p>Your certificates have been generated successfully. The following steps were completed:</p>
+    
+    <ol class="steps">
+        <li>Generated RSA key pairs for both author and distributor certificates</li>
+        <li>Created certificate signing requests (CSRs)</li>
+        <li>Obtained signed certificates from Samsung's servers</li>
+        <li>Combined certificates with CA certificates</li>
+        <li>Created final PKCS12 (.p12) files with empty passwords</li>
+    </ol>
+
+    <p>Your final certificate files are ready for use:</p>
+    
+    <div class="file-list">
+        {% for file in certificate_files if file.endswith('.p12') %}
+            <a class="file-link" href="/certificates/{{ file }}" download>{{ file }}</a>
+        {% endfor %}
+    </div>
+
+    <p><strong>Note:</strong> Both certificates have been generated with empty passwords for easier integration.</p>
+
+    <div class="next-steps">
+        <h3>Next Steps: Register with Tizen Studio</h3>
+        <p>To register these certificates with your Tizen Studio profile, use the following command in your terminal:</p>
+        <div class="command-box">tizen security-profiles add \
+    --name MyProfile \
+    --author {{ certificates_path }}/author.p12 \
+    --dist {{ certificates_path }}/distributor.p12 \
+    --password '' \
+    --dist-password ''</div>
+        <p>Make sure to:</p>
+        <ol>
+            <li>Change <code>MyProfile</code> to your desired profile name</li>
+            <li>The empty quotes for passwords are correct since these certificates were generated with empty passwords</li>
+        </ol>
+    </div>
+    
+    <div id="shutdown-container">
+        <button class="shutdown-btn" onclick="shutdownServer()">Shutdown Server</button>
+    </div>
+
+    <script>
+        function shutdownServer() {
+            fetch('/shutdown', { method: 'POST' })
+                .then(() => {
+                    document.getElementById('shutdown-container').innerHTML = 
+                        '<p class="shutdown-message">Server has been shut down. You can close this window.</p>';
+                })
+                .catch(() => {
+                    // Server shutdown is expected to cause a connection error
+                    document.getElementById('shutdown-container').innerHTML = 
+                        '<p class="shutdown-message">Server has been shut down. You can close this window.</p>';
+                });
+        }
+    </script>
+</body>
+</html>

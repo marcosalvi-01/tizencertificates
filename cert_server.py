@@ -60,6 +60,7 @@ class ServerConfig:
         self.cert_type: CertType = CertType.OTHER
         self.device_id: str = ""
         self.email: str = ""
+        self.cert_password: str = ""
 
 
 def initialize_server(args) -> ServerConfig:
@@ -74,6 +75,7 @@ def initialize_server(args) -> ServerConfig:
     config.cert_type = CertType.TV if args.tv else CertType.OTHER
     config.device_id = args.device_id
     config.email = args.email
+    config.cert_password = args.cert_password
 
     # Parse callback path and port from login URL
     parsed_url = urlparse(config.login_url)
@@ -89,7 +91,7 @@ def initialize_server(args) -> ServerConfig:
 
 
 def generate_certificates(
-    cert_type: CertType, device_id: str, email: str, access_token: str, user_id: str
+    cert_type: CertType, device_id: str, email: str, access_token: str, user_id: str, cert_password: str = ""
 ):
     if not user_id:
         raise Exception("No user ID provided")
@@ -152,9 +154,9 @@ def generate_certificates(
 
     # Create author PKCS12
     pkcs12_cmd = (
-        "openssl pkcs12 -export -out author.p12 -inkey author.key.pem "
-        "-in author-and-ca.crt -name usercertificate"
-        " -legacy -passout pass:"
+        f"openssl pkcs12 -export -out author.p12 -inkey author.key.pem "
+        f"-in author-and-ca.crt -name usercertificate"
+        f" -legacy -passout pass:{cert_password}"
     )
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
@@ -207,9 +209,9 @@ def generate_certificates(
 
     # Create distributor PKCS12
     pkcs12_cmd = (
-        "openssl pkcs12 -export -out distributor.p12 -inkey distributor.key.pem "
-        "-in distributor-and-ca.crt -name usercertificate"
-        " -legacy -passout pass:"
+        f"openssl pkcs12 -export -out distributor.p12 -inkey distributor.key.pem "
+        f"-in distributor-and-ca.crt -name usercertificate"
+        f" -legacy -passout pass:{cert_password}"
     )
 
     result = subprocess.run(pkcs12_cmd, shell=True, capture_output=True, text=True)
@@ -278,6 +280,7 @@ def setup_routes():
                     config.email,
                     access_token,
                     user_id,
+                    config.cert_password
                 )
 
                 # Get list of generated certificate files
@@ -295,6 +298,7 @@ def setup_routes():
                         "request": request,
                         "certificate_files": sorted(cert_files),
                         "certificates_path": cert_dir,
+                        "cert_password": config.cert_password
                     },
                 )
 
@@ -340,6 +344,7 @@ if __name__ == "__main__":
     parser.add_argument("--tv", action="store_true", help="Generate TV certificates")
     parser.add_argument("--device-id", required=True, help="Device ID")
     parser.add_argument("--email", required=True, help="Email address")
+    parser.add_argument("--cert-password", required=False, default="", help="Password with which to sign the certificates")
     args = parser.parse_args()
 
     try:

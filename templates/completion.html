@@ -105,12 +105,11 @@
     --name MyProfile \
     --author {{ certificates_path }}/author.p12 \
     --dist {{ certificates_path }}/distributor.p12 \
-    --password '' \
-    --dist-password ''</div>
+    --password '{{ cert_password }}' \
+    --dist-password '{{ cert_password}}'</div>
         <p>Make sure to:</p>
         <ol>
             <li>Change <code>MyProfile</code> to your desired profile name</li>
-            <li>The empty quotes for passwords are correct since these certificates were generated with empty passwords</li>
         </ol>
     </div>
     

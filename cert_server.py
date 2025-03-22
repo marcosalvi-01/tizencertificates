@@ -169,11 +169,18 @@ def generate_certificates(
     else:
         email_part = ""
 
+    # Handle multiple device IDs
+    device_ids = [id.strip() for id in device_id.split(',')]
+    san_extension = 'URI:URN:tizen:packageid='
+    for dev_id in device_ids:
+        if dev_id:  # Only add non-empty device IDs
+            san_extension += f',URI:URN:tizen:deviceid={dev_id}'
+
     dist_commands = [
         "openssl genrsa -out distributor.key.pem 2048",
         "openssl rsa -in distributor.key.pem -outform PEM -pubout -out distributor.key.pem.pub",
         f'openssl req -new -key distributor.key.pem -out distributor.csr -subj "/CN=TizenSDK{email_part}" '
-        f'-addext "subjectAltName = URI:URN:tizen:packageid=,URI:URN:tizen:deviceid={device_id}"',
+        f'-addext "subjectAltName = {san_extension}"',
     ]
 
     # Get distributor certificate from Samsung
@@ -342,7 +349,7 @@ def open_browser():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--tv", action="store_true", help="Generate TV certificates")
-    parser.add_argument("--device-id", required=True, help="Device ID")
+    parser.add_argument("--device-id", required=True, help="Device ID (comma-separated for multiple IDs)")
     parser.add_argument("--email", required=True, help="Email address")
     parser.add_argument("--cert-password", required=False, default="", help="Password with which to sign the certificates")
     args = parser.parse_args()

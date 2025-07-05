@@ -1,3 +1,5 @@
+run with ./script.sh
+
 # Samsung Tizen Certificate Generator
 
 A FastAPI web application that automates the process of generating Samsung Tizen developer certificates for both TV and other Tizen devices.
